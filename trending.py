@@ -125,7 +125,7 @@ def get_ai_suggestions():
     """
     time_str = pd.Timestamp.now().strftime("%Y年-%m月-%d日")
     prompt = f"""
-    请在美股市场中筛选出当前（{time_str}）时间最近 5 个交易日内满足以下量价与情绪特征的 6–8 个ETF（不要股票）：
+    请在美股市场中筛选出当前（{time_str}）时间最近 5 个交易日内满足以下量价与情绪特征的 5 个ETF（不要股票）：
     1) 成交量连续放大（连续 3 日或以上成交量环比上升）
     2) 价格近期创近期高点或呈稳步攀升趋势
     3) 社交/新闻情绪明显上升（如情绪数据或社媒热度/提及度明显提高）
@@ -203,7 +203,11 @@ def get_ai_summary(ticker, phase, rsi, bias):
     1. 搜索并确认该资产近期的核心驱动事件（如财报、利率决议、地缘动态、需求热度等）。
     2. 基于“结构化传导逻辑”：如果该资产持续走强/走弱，哪一个关联产业环节将成为下一个爆发点？
     3. 给出预测：趋势 → 供应链/流动性变化 → 资产形态。
-    要求：直接给出 2 个精准的传导方向和最可能爆发的资产代码，200字以内，不要废话。
+    要求：直接给出 2 个精准的传导方向和最可能爆发的资产代码，以及对每个资产的20字原因说明，输出格式如下：
+    预测结果：
+    1) 资产代码 - 爆发原因简述
+    2) 资产代码 - 爆发原因简述
+    只返回结果，不要包含其他说明文字。
     """
     try:
         response = client.models.generate_content(
@@ -311,7 +315,7 @@ for idx, ticker in enumerate(valid_tickers):
     res = get_structured_data(ticker)
     if res:
         ai_pred = get_ai_summary(ticker, res['phase'], res['rsi'], res['bias'])
-        table_data.append({**res, "ai_pred": ai_pred, "name": asset_map.get(ticker, ticker), "chinese_name": ETF_CHINESE_NAMES.get(ticker, "")})
+        table_data.append({**res, "ai_pred": ai_pred, "name": asset_map.get(ticker, ticker), "chinese_name": ETF_CHINESE_NAMES.get(ticker, "未知标的")})
     my_bar.progress((idx + 1) / len(valid_tickers), text=progress_text)
 my_bar.empty()
 
@@ -327,11 +331,11 @@ if table_data:
     header_explanations = [
         "标的代码（Ticker），支持 ETF 或 单只股票，例如 QQQ、NVDA",
         "底层资产或主题的简短说明，例如：纳指100 / 英伟达 / 黄金",
-        "基于均线与乖离率判定的周期阶段：起步 / 上升 / 成熟 / 调整（带图标提示）",
-        "相对强弱指数 (RSI, 0-100)，>70 为超买（短期回调风险），<30 为超卖（可能反弹）",
-        "结构化乖离度 = (当前价 - 200日均线) / 200日均线；\n>25%: 过热（历史高风险），0~25%: 健康上升，<0%: 回调/低估",
-        "过去 12 个月的价格趋势缩略图（绿色上升 / 红色下降）",
-        "AI 根据结构化传导逻辑给出的 3-12 个月潜在爆发方向；支持 Markdown，内容高度自适配并可滚动查看"
+        "当前阶段：标的的技术分析阶段，例如：上涨阶段、成熟阶段",
+        "RSI：相对强弱指数，衡量标的的超买或超卖状态",
+        "结构化乖离度：标的价格与其均值的偏离程度，显示为百分比",
+        "12M趋势：标的最近一年的价格趋势图",
+        "🔮 AI 实时链式预测：基于 AI 的实时预测，展示潜在的爆发机会"
     ]
 
     for col, label, help_text in zip(header_cols, labels, header_explanations):
