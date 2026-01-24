@@ -1,3 +1,7 @@
-streamlit
-pandas
 requests
+streamlit>=1.30.0
+yfinance>=0.2.50
+pandas>=2.0.0
+google-genai  # 替换掉旧的 google-generativeai
+plotly
+streamlit-antd-components
