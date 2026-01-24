@@ -62,8 +62,8 @@ def sanitize_and_validate_user_tickers(raw_input, max_keep=50):
     return valid, invalid
 
 # --- 1. 环境与连接配置 ---
-os.environ['HTTPS_PROXY'] = 'http://127.0.0.1:8118'
-os.environ['HTTP_PROXY'] = 'http://127.0.0.1:8118'
+# os.environ['HTTPS_PROXY'] = 'http://127.0.0.1:8118'
+# os.environ['HTTP_PROXY'] = 'http://127.0.0.1:8118'
 
 API_KEY = "AIzaSyAHv7J2ukKTfMCrIXjFF-PE_fJdBBEzGZs"
 client = genai.Client(api_key=API_KEY)
