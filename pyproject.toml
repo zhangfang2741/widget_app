@@ -3,7 +3,7 @@ name = "financial-insight-widget"
 version = "0.1.0"
 description = "财务数据分析与可视化工具"
 authors = [
-    { name = "leo", email = "leo@example.com" }
+    { name = "LEO", email = "zfleo.us@gmail.com" }
 ]
 readme = "README.md"
 requires-python = ">=3.10"
