@@ -8,10 +8,12 @@ from google import genai
 from google.genai import types
 import logging
 import contextlib
+from contextlib import nullcontext
 
 # Reduce noisy log output from yfinance / urllib3
 logging.getLogger('yfinance').setLevel(logging.ERROR)
 logging.getLogger('urllib3').setLevel(logging.WARNING)
+
 
 # Helper to suppress noisy yfinance stdout/stderr (prevents 'Failed download' lines flooding the UI/console)
 def safe_yf_download(*args, **kwargs):
@@ -60,6 +62,7 @@ def sanitize_and_validate_user_tickers(raw_input, max_keep=50):
             break
 
     return valid, invalid
+
 
 # --- 1. 环境与连接配置 ---
 # os.environ['HTTPS_PROXY'] = 'http://127.0.0.1:8118'
@@ -114,15 +117,8 @@ def get_structured_data(ticker):
 # --- 3. 开启搜索能力的 AI 模块 ---
 
 @st.cache_data(ttl=3600)
-def get_ai_suggestions():
-    """让 AI 推荐当前热点并对候选代码进行严格校验后返回
-
-    Steps:
-    - Use a tighter regex to extract plausible ticker-like tokens (letters, and optional . or - parts)
-    - Filter out common English stopwords / noise tokens
-    - Verify each candidate with a short yfinance download (5d) and keep only those with data
-    - Return a deduplicated, comma-separated list (max 12)
-    """
+def get_ai_suggestions() -> str:
+    """Ensure the function explicitly returns a string."""
     time_str = pd.Timestamp.now().strftime("%Y年-%m月-%d日")
     prompt = f"""
     请在美股市场中筛选出当前（{time_str}）时间最近 5 个交易日内满足以下量价与情绪特征的ETF（不要股票）：
@@ -144,49 +140,8 @@ def get_ai_suggestions():
         model='gemini-2.0-flash', contents=prompt
     )
     raw_text = response.text.upper()
-    # 更严格的正则：允许形如 NVDA 或 BRK.B 或 RIVN 等（字母 1-5，可选 . 或 - 后缀）
-    candidates = re.findall(r"\b[A-Z]{1,5}(?:[.\-][A-Z0-9]{1,2})?\b", raw_text)
-
-    # 黑名单 / 停用词，扩展一些常见噪声词
-    noise = {'ETF', 'AI', 'USD', 'THE', 'AND', 'WITH', 'YOUR', 'ALSO', 'COULD', 'MAY', 'WILL', 'FOR',
-             'NOT', 'THIS', 'THAT', 'FROM', 'HAS', 'HAVE', 'IN', 'ON', 'AT', 'BY', 'ABOUT', 'OVER'}
-
-    # 保留候选并去重，且排除纯数字或长度过长的token
-    seen = set()
-    filtered = []
-    for tok in candidates:
-        if tok in noise:
-            continue
-        # skip tokens that look like months or common words
-        if re.match(r'^[A-Z]{1,2}$', tok) and tok not in ['XL', 'XLU', 'XLK', 'SP', 'BR']:
-            # 1-2 letter tokens are rarely valid tickers on US exchanges; let yf validate them later
-            pass
-        # normalize BRK.B -> BRK-B for yfinance compatibility
-        norm = tok.replace('.', '-')
-        if norm in seen:
-            continue
-        seen.add(norm)
-        filtered.append(norm)
-
-    # Validate with yfinance to remove delisted/invalid symbols
-    valid = []
-    for sym in filtered:
-        try:
-            # try a very short download to check existence
-            dd = safe_yf_download(sym, period='5d', interval='1d', progress=False, auto_adjust=True)
-            if not dd.empty:
-                valid.append(sym)
-        except Exception:
-            # ignore symbols that yfinance can't fetch
-            continue
-        # limit to reasonable number to avoid long loops
-        if len(valid) >= 12:
-            break
-
-    if not valid:
-        return "QQQ, NVDA, SMH, GLD, SLV, BITO, COIN"
-
-    return ",".join(valid)
+    print("raw_text:" + raw_text)
+    return raw_text
 
 
 @st.cache_data(ttl=3600)
@@ -248,7 +203,7 @@ def make_sparkline(data_series):
 
 
 def get_top_stocks_in_etf(etf_ticker):
-    """Fetch the top-performing stocks within a given ETF."""
+    """Fetch the top-performing stocks within a given ETF, including English and Chinese ETF names."""
     try:
         # Download ETF holdings data (mocked for demonstration)
         holdings = safe_yf_download(etf_ticker, period='1y', interval='1d', progress=False, auto_adjust=True)
@@ -257,7 +212,24 @@ def get_top_stocks_in_etf(etf_ticker):
 
         # Analyze holdings to find top-performing stocks
         top_stocks = holdings.sort_values(by='performance_metric', ascending=False).head(5)
-        return top_stocks[['ticker', 'performance_metric']]
+
+        # Map ETF ticker to English and Chinese names
+        asset_map = {
+            "QQQ": {"english": "Invesco QQQ Trust", "chinese": "纳斯达克100指数"},
+            "SMH": {"english": "VanEck Semiconductor ETF", "chinese": "半导体行业"},
+            "BOTZ": {"english": "Global X Robotics & AI ETF", "chinese": "机器人与人工智能"},
+            "GLD": {"english": "SPDR Gold Trust", "chinese": "黄金ETF"},
+            "GDX": {"english": "VanEck Gold Miners ETF", "chinese": "黄金矿业ETF"},
+            # Add more mappings as needed
+        }
+
+        etf_name = asset_map.get(etf_ticker, {"english": "Unknown", "chinese": "未知"})
+
+        # Add ETF names to the result
+        top_stocks["ETF_English_Name"] = etf_name["english"]
+        top_stocks["ETF_Chinese_Name"] = etf_name["chinese"]
+
+        return top_stocks[["ticker", "performance_metric", "ETF_English_Name", "ETF_Chinese_Name"]]
     except Exception as e:
         return f"Error fetching data for ETF {etf_ticker}: {str(e)}"
 
@@ -273,10 +245,14 @@ if 'user_tickers' not in st.session_state:
 
 
 def auto_detect_market():
-    # Correcting the usage of st.spinner to ensure it works as a context manager
-    with st.spinner("AI 正在全网搜索最新叙事焦点..."):
+    """Ensure compatibility with st.spinner by using a fallback context manager."""
+    context = st.spinner("AI 正在全网搜索最新叙事焦点...") if hasattr(st, 'spinner') else nullcontext()
+    with context:
         suggestions = get_ai_suggestions()
-        st.session_state.user_tickers = suggestions
+        if suggestions:
+            st.session_state.user_tickers = suggestions
+        else:
+            st.warning("AI 搜索未返回结果，请稍后重试。")
 
 
 with st.sidebar:
@@ -316,7 +292,8 @@ for idx, ticker in enumerate(valid_tickers):
     res = get_structured_data(ticker)
     if res:
         ai_pred = get_ai_summary(ticker, res['phase'], res['rsi'], res['bias'])
-        table_data.append({**res, "ai_pred": ai_pred, "name": asset_map.get(ticker, ticker), "chinese_name": ETF_CHINESE_NAMES.get(ticker, "未知标的")})
+        table_data.append({**res, "ai_pred": ai_pred, "name": asset_map.get(ticker, ticker),
+                           "chinese_name": ETF_CHINESE_NAMES.get(ticker, "未知标的")})
     my_bar.progress((idx + 1) / len(valid_tickers), text=progress_text)
 my_bar.empty()
 
