@@ -111,25 +111,20 @@ def etf_scanner_node(state: GraphState):
     for ticker in etf_pool:
         try:
             df = yf.download(ticker, start=datetime.now() - timedelta(days=60), progress=False)
-            if df is None or len(df) < 20: continue
+            if df is None or len(df) < 20:
+                continue
 
-            # 处理 MultiIndex 确保取出一维数组
-            closes = df['Close'].iloc[:, 0].values if isinstance(df['Close'], pd.DataFrame) else df['Close'].values
-            volumes = df['Volume'].iloc[:, 0].values if isinstance(df['Volume'], pd.DataFrame) else df['Volume'].values
+            closes = df["Close"].iloc[:, 0].values if isinstance(df["Close"], pd.DataFrame) else df["Close"].values
+            volumes = df["Volume"].iloc[:, 0].values if isinstance(df["Volume"], pd.DataFrame) else df["Volume"].values
             closes, volumes = closes.flatten().astype(float), volumes.flatten().astype(float)
 
-            # 技术面分：基于 OBV 斜率与价格高位
             obv = talib.OBV(closes, volumes)
             slope = talib.LINEARREG_SLOPE(obv, timeperiod=5)[-1]
             tech_score = int((closes[-1] / np.max(closes[-20:])) * 75 + (15 if slope > 0 else 0))
 
-            # 舆情分：获取 AI 评分
             news_score = sent_scores.get(ticker, 50)
-
-            # 综合强度
             comp_score = int(tech_score * 0.6 + news_score * 0.4)
 
-            # 多头决策建议
             if comp_score >= 82 and slope > 0:
                 rec, reason = "🌟 强烈推荐", "量价舆情强力共振"
             elif tech_score >= 75 and slope > 0:
@@ -139,14 +134,34 @@ def etf_scanner_node(state: GraphState):
             else:
                 rec, reason = "❌ 暂不推荐", "合力不足或趋势偏弱"
 
-            results.append({
-                "代码": ticker, "现价": f"${closes[-1]:.2f}",
-                "技术分": tech_score, "舆情分": news_score, "综合强度": comp_score,
-                "决策建议": rec, "多头理由": reason, "AI解读": sent_reasons.get(ticker, "无")
-            })
+            results.append(
+                {
+                    "代码": ticker,
+                    "现价": f"${closes[-1]:.2f}",
+                    "技术分": tech_score,
+                    "舆情分": news_score,
+                    "综合强度": comp_score,
+                    "决策建议": rec,
+                    "多头理由": reason,
+                    "AI解读": sent_reasons.get(ticker, "无"),
+                }
+            )
         except:
             continue
-    return {"etf_highlights": pd.DataFrame(results).sort_values("综合强度", ascending=False)}
+
+    df_out = pd.DataFrame(results)
+
+    # 兜底：空结果时补齐列，避免 sort_values KeyError
+    if df_out.empty:
+        df_out = pd.DataFrame(
+            columns=["代码", "现价", "技术分", "舆情分", "综合强度", "决策建议", "多头理由", "AI解读"]
+        )
+        return {"etf_highlights": df_out}
+
+    if "综合强度" in df_out.columns:
+        df_out = df_out.sort_values("综合强度", ascending=False)
+
+    return {"etf_highlights": df_out}
 
 
 def fetch_market_node(state: GraphState):
