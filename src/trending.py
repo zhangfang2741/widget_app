@@ -65,11 +65,12 @@ def sanitize_and_validate_user_tickers(raw_input, max_keep=50):
 
 
 # --- 1. 环境与连接配置 ---
-# os.environ['HTTPS_PROXY'] = 'http://127.0.0.1:8118'
-# os.environ['HTTP_PROXY'] = 'http://127.0.0.1:8118'
 
-API_KEY = "AIzaSyAHv7J2ukKTfMCrIXjFF-PE_fJdBBEzGZs"
-client = genai.Client(api_key=API_KEY)
+gemini_api_key = os.getenv("GEMINI_API_KEY")
+if not gemini_api_key:
+    raise ValueError("Environment variable GEMINI_API_KEY is not set or is empty.")
+
+client = genai.Client(api_key=gemini_api_key)
 
 
 # --- 2. 核心量化算法库 ---

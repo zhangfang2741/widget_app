@@ -1,5 +1,6 @@
 import streamlit as st
-
+from dotenv import load_dotenv as load_env
+load_env()
 # 页面配置放在最前面
 # layout="wide": 在手机上尽量占满屏幕宽度，减少白边
 # initial_sidebar_state="auto": 在手机端自动折叠菜单，PC端默认展开，适配移动设备操作逻辑
@@ -14,9 +15,9 @@ def main():
     # 定义页面列表，指向独立的文件路径
     # 确保 trending.py 和 portfolio.py 与 app.py 在同一目录下
     pages = [
-        st.Page("dashboard.py", title="首页概览", icon="🏠", default=True),
-        st.Page("trending.py", title="热门资产", icon="🔥"),
-        st.Page("portfolio.py", title="投资组合 (示例)", icon="💼"),
+        st.Page("src/dashboard.py", title="首页概览", icon="🏠", default=True),
+        st.Page("src/trending.py", title="热门资产", icon="🔥"),
+        st.Page("src/portfolio.py", title="投资组合 (示例)", icon="💼"),
     ]
 
     # 创建导航栏

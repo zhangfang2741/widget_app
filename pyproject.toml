@@ -1,0 +1,19 @@
+[project]
+name = "financial-insight-widget"
+version = "0.1.0"
+description = "财务数据分析与可视化工具"
+authors = [
+    { name = "leo", email = "leo@example.com" }
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "requests",
+    "streamlit>=1.30.0",
+    "yfinance>=0.2.50",
+    "pandas>=2.0.0",
+    "google-genai",
+    "plotly",
+    "dotenv",
+    "pandas-stubs~=2.3.3",
+]
