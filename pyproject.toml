@@ -16,4 +16,9 @@ dependencies = [
     "plotly",
     "dotenv",
     "pandas-stubs~=2.3.3",
+    "lxml",
+    "matplotlib",
+    "langgraph",
+    "TA-Lib",
+    "ipykernel>=7.1.0",
 ]
