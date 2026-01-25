@@ -1,5 +1,4 @@
 .devcontainer
-.streamlit
 .venv
 .env
 .idea
