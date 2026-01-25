@@ -1,0 +1,6 @@
+.devcontainer
+.streamlit
+.venv
+.env
+.idea
+uv.lock
