@@ -14,80 +14,60 @@ from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 TIINGO_API_KEY = "302c6b2a5781f2b0831b324870f217944ced68e6"
 CACHE_DIR = Path("tiingo_ticker_cache")
 CACHE_DIR.mkdir(exist_ok=True)
+# 整理 100+ 核心 ETF 的专业中文名称
 CHINESE_NAMES = {
     # 01 信息技术
-    "XLK": "科技行业精选指数ETF-SPDR",
-    "VGT": "先锋信息技术ETF-Vanguard",
-    "SMH": "半导体指数ETF-VanEck",
-    "IGV": "软件服务指数ETF-iShares",
+    "XLK": "科技行业精选指数ETF-SPDR", "VGT": "先锋信息技术ETF-Vanguard", "SMH": "半导体指数ETF-VanEck",
+    "SOXX": "半导体指数ETF-iShares", "IGV": "软件服务指数ETF-iShares", "HACK": "网络安全指数ETF-Global X",
+    "SKYY": "云计算指数ETF-First Trust", "WCLD": "云计算指数ETF-WisdomTree", "FINX": "金融科技ETF-Global X", "BOTZ": "机器人与人工智能ETF-Global X",
     # 02 医疗保健
-    "XLV": "医疗保健行业精选指数ETF-SPDR",
-    "IBB": "纳斯达克生物技术ETF-iShares",
-    "XBI": "标普生物技术ETF-SPDR",
-    "IHI": "医疗器械指数ETF-iShares",
+    "XLV": "医疗保健行业精选指数ETF-SPDR", "IBB": "纳斯达克生物技术ETF-iShares", "XBI": "标普生物技术ETF-SPDR",
+    "IHI": "医疗器械指数ETF-iShares", "ARKG": "基因革命ETF-ARK Invest", "IDNA": "基因组学ETF-iShares",
+    "PPH": "制药指数ETF-VanEck", "SBIO": "生物技术临床阶段ETF", "KURE": "中国医疗健康ETF-KraneShares",
     # 03 金融
-    "XLF": "金融行业精选指数ETF-SPDR",
-    "KBE": "标普银行ETF-SPDR",
-    "KRE": "标普地区银行ETF-SPDR",
-    "IAI": "证券经纪商指数ETF-iShares",
+    "XLF": "金融行业精选指数ETF-SPDR", "KBE": "标普银行ETF-SPDR", "KRE": "标普地区银行ETF-SPDR",
+    "IAI": "证券经纪商指数ETF-iShares", "KCE": "标普资本市场ETF-SPDR", "IAT": "地区银行指数ETF-iShares", "FNCL": "先锋金融ETF-Vanguard",
     # 04 可选消费
-    "XLY": "可选消费行业精选指数ETF-SPDR",
-    "XRT": "标普零售指数ETF-SPDR",
-    "PEJ": "休闲娱乐指数ETF-Invesco",
+    "XLY": "可选消费行业精选指数ETF-SPDR", "XRT": "标普零售指数ETF-SPDR", "IBUY": "在线零售ETF-Amplify",
+    "BETZ": "在线博彩ETF-Roundhill", "PEJ": "休闲娱乐指数ETF-Invesco", "VDC": "先锋必需消费ETF-Vanguard",
     # 05 必需消费
-    "XLP": "必需消费行业精选指数ETF-SPDR",
-    "VDC": "先锋必需消费ETF-Vanguard",
-    "COST": "开市客(个股)",
+    "XLP": "必需消费行业精选指数ETF-SPDR", "FSTA": "必需消费指数ETF-Fidelity", "COST": "开市客(个股)",
     # 06 工业
-    "XLI": "工业行业精选指数ETF-SPDR",
-    "ITA": "航空国防指数ETF-iShares",
-    "JETS": "全球航空业ETF-US Global",
-    "PAVE": "基础建设指数ETF-Global X",
+    "XLI": "工业行业精选指数ETF-SPDR", "ITA": "航空国防指数ETF-iShares", "PAVE": "基础建设指数ETF-Global X",
+    "JETS": "全球航空业ETF-US Global", "VIS": "先锋工业ETF-Vanguard", "IFRA": "基础设施指数ETF-iShares", "XAR": "标普航空国防ETF-SPDR",
     # 07 能源
-    "XLE": "能源行业精选指数ETF-SPDR",
-    "XOP": "标普油气开采ETF-SPDR",
-    "ICLN": "全球清洁能源ETF-iShares",
+    "XLE": "能源行业精选指数ETF-SPDR", "XOP": "标普油气开采ETF-SPDR", "VDE": "先锋能源ETF-Vanguard",
+    "ICLN": "全球清洁能源ETF-iShares", "TAN": "太阳能指数ETF-Invesco", "FAN": "风能指数ETF-First Trust", "URNM": "铀矿指数ETF-Sprott",
     # 08 原材料
-    "XLB": "原材料行业精选指数ETF-SPDR",
-    "GLD": "黄金ETF-SPDR Gold",
-    "SLV": "白银ETF-iShares Silver",
-    "GDX": "金矿股指数ETF-VanEck",
-    "COPX": "铜矿股指数ETF-Global X",
+    "XLB": "原材料行业精选指数ETF-SPDR", "LIT": "锂电池指数ETF-Global X", "COPX": "铜矿股指数ETF-Global X",
+    "GDX": "金矿股指数ETF-VanEck", "GDXJ": "小盘金矿股ETF-VanEck", "SIL": "白银矿业ETF-Global X",
+    "REMX": "稀土战略金属ETF-VanEck", "PICK": "全球金属矿业ETF-iShares", "GLD": "黄金ETF-SPDR Gold", "SLV": "白银ETF-iShares Silver",
     # 09 通信服务
-    "XLC": "通信服务行业精选指数ETF-SPDR",
-    "VOX": "先锋通信服务ETF-Vanguard",
-    "SOCL": "社交媒体指数ETF-Global X",
+    "XLC": "通信服务行业精选指数ETF-SPDR", "VOX": "先锋通信服务ETF-Vanguard", "SOCL": "社交媒体指数ETF-Global X", "FCOM": "通信服务ETF-Fidelity",
     # 10 房地产
-    "XLRE": "房地产行业精选指数ETF-SPDR",
-    "VNQ": "先锋房地产REITs ETF-Vanguard",
-    "REZ": "住宅房地产指数ETF-iShares",
+    "XLRE": "房地产行业精选指数ETF-SPDR", "VNQ": "先锋房地产REITs ETF-Vanguard", "REZ": "住宅房地产指数ETF-iShares", "SRVR": "数据中心房地产ETF",
     # 11 公用事业
-    "XLU": "公用事业行业精选指数ETF-SPDR",
-    "VPU": "先锋公用事业ETF-Vanguard",
-    "NEE": "新纪元能源(个股)",
-    # 12 另类/跨行业/宏观 (新增全球宏观维度)
-    "EEM": "新兴市场股票指数ETF-iShares",
-    "VEA": "发达市场(不含美)指数ETF-Vanguard",
-    "FXI": "中国大盘股指数ETF-iShares",
-    "ARKK": "方舟创新ETF-ARK Invest",
-    "BITO": "比特币策略ETF-ProShares",
-    "MSOS": "大麻核心ETF-AdvisorShares"
+    "XLU": "公用事业行业精选指数ETF-SPDR", "VPU": "先锋公用事业ETF-Vanguard", "IDU": "公用事业指数ETF-iShares", "FUTY": "公用事业ETF-Fidelity",
+    # 12 全球宏观/另类
+    "TLT": "20年期以上美国国债ETF-iShares", "EEM": "新兴市场股票指数ETF-iShares", "VEA": "发达市场(不含美)指数ETF-Vanguard",
+    "FXI": "中国大盘股指数ETF-iShares", "ARKK": "方舟创新ETF-ARK Invest", "BITO": "比特币策略ETF-ProShares",
+    "MSOS": "大麻核心ETF-AdvisorShares", "IPO": "新股指数ETF-Renaissance", "UFO": "太空工业ETF-Procure",
+    "GBTC": "灰度比特币信托-GBTC","ETHE": "灰度以太坊信托-ETHE"
 }
 
-# 行业层级定义 (涵盖100+细分)
 ETF_LIBRARY = {
-    "01 信息技术": ["XLK", "VGT", "SMH", "IGV"],
-    "02 医疗保健": ["XLV", "IBB", "XBI", "IHI"],
-    "03 金融": ["XLF", "KBE", "KRE", "IAI"],
-    "04 可选消费": ["XLY", "XRT", "PEJ"],
-    "05 必需消费": ["XLP", "VDC", "COST"],
-    "06 工业": ["XLI", "ITA", "JETS", "PAVE"],
-    "07 能源": ["XLE", "XOP", "ICLN"],
-    "08 原材料": ["XLB", "GLD", "SLV", "GDX", "COPX"],
-    "09 通信服务": ["XLC", "VOX", "SOCL"],
-    "10 房地产": ["XLRE", "VNQ", "REZ"],
-    "11 公用事业": ["XLU", "VPU", "NEE"],
-    "12 跨行业/全球宏观": ["EEM", "VEA", "FXI", "ARKK", "BITO", "MSOS"]
+    "01 信息技术": ["XLK", "VGT", "SMH", "SOXX", "IGV", "HACK", "SKYY", "WCLD", "FINX", "BOTZ"],
+    "02 医疗保健": ["XLV", "IBB", "XBI", "IHI", "ARKG", "IDNA", "PPH", "SBIO", "KURE"],
+    "03 金融": ["XLF", "KBE", "KRE", "IAI", "KCE", "IAT", "FNCL"],
+    "04 可选消费": ["XLY", "XRT", "IBUY", "BETZ", "PEJ"],
+    "05 必需消费": ["XLP", "VDC", "FSTA", "COST"],
+    "06 工业": ["XLI", "ITA", "PAVE", "JETS", "VIS", "IFRA", "XAR"],
+    "07 能源": ["XLE", "XOP", "VDE", "ICLN", "TAN", "FAN", "URNM"],
+    "08 原材料": ["XLB", "LIT", "COPX", "GDX", "GDXJ", "SIL", "REMX", "PICK", "GLD", "SLV"],
+    "09 通信服务": ["XLC", "VOX", "SOCL", "FCOM"],
+    "10 房地产": ["XLRE", "VNQ", "REZ", "SRVR"],
+    "11 公用事业": ["XLU", "VPU", "IDU", "FUTY"],
+    "12 全球宏观/另类": ["TLT", "EEM", "VEA", "FXI", "ARKK", "BITO", "MSOS", "IPO", "UFO","GBTC", "ETHE"]
 }
 
 TICKER_TO_SECTOR = {t: s for s, ts in ETF_LIBRARY.items() for t in ts}
