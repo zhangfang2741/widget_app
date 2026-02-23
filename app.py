@@ -15,9 +15,11 @@ def main():
     # 定义页面列表，指向独立的文件路径
     # 确保 trending.py 和 portfolio.py 与 app.py 在同一目录下
     pages = [
-        st.Page("src/dashboard.py", title="首页概览", icon="🏠", default=True),
+        st.Page("src/Market_Intensity_Heatmap.py", title="美国行业资金流热力图", icon="💼",default=True),
+        st.Page("src/dashboard.py", title="首页概览", icon="🏠"),
         st.Page("src/trending.py", title="热门资产", icon="🔥"),
         st.Page("src/portfolio.py", title="投资组合 (示例)", icon="💼"),
+        st.Page("src/cot_index.py", title="COT 庄家筹码雷达", icon="💼"),
     ]
 
     # 创建导航栏

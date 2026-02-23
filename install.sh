@@ -2,3 +2,4 @@
 #uv run <脚本名>
 uv sync
 uv export --format requirements-txt --no-hashes > requirements.txt
+uv run streamlit run app.py

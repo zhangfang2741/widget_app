@@ -21,4 +21,6 @@ dependencies = [
     "langgraph",
     "TA-Lib",
     "ipykernel>=7.1.0",
+    "certifi",
+    "streamlit-aggrid"
 ]

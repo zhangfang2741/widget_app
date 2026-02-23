@@ -1,354 +1,202 @@
 import streamlit as st
 import pandas as pd
-import yfinance as yf
-import talib
-import numpy as np
-import json
-import os
+import requests
 import io
-import xml.etree.ElementTree as ET
-from datetime import datetime, timedelta
-from typing import TypedDict, Dict, List, Optional, Any
-from langgraph.graph import StateGraph, START, END
-from google import genai
-from dotenv import load_dotenv
-from urllib.request import Request, urlopen
-from langchain_core.output_parsers import JsonOutputParser
-from pydantic import BaseModel, Field
+import zipfile
+import matplotlib.pyplot as plt
+from bs4 import BeautifulSoup
+import time
 
-# 加载环境变量
-load_dotenv()
-
-
-# --- 1. 结构化数据定义 ---
-class SentimentResult(BaseModel):
-    score: float = Field(description="情绪分数，范围从 -1.0 (利空) 到 1.0 (利好)")
-    reason: str = Field(description="简短分析理由，限 20 字")
-
-
-class BatchSentiment(BaseModel):
-    results: Dict[str, SentimentResult] = Field(description="以 Ticker 为键，SentimentResult 为值的字典")
-
-
-class GraphState(TypedDict):
-    dynamic_etf_list: List[str]
-    etf_news_sentiment: Dict[str, int]
-    etf_news_reasons: Dict[str, str]
-    etf_highlights: Optional[pd.DataFrame]
-    raw_sectors: Optional[pd.DataFrame]
-    raw_industries: Optional[pd.DataFrame]
-    hierarchy_db: Any
-    etf_cn_map: Dict[str, str]  # ✅ 新增：ETF ticker -> 中文名
-    error: Optional[str]
+# --- 1. 全局配置与资产映射 ---
+# Finviz 映射用于实时行情，CFTC 关键词用于历史持仓匹配
+ASSET_CONFIG = {
+    "Silver (白银)": {
+        "fv_ticker": "silver",
+        "cftc_kw": ["SILVER", "COMMODITY"],
+        "color": "#C0C0C0"
+    },
+    "Gold (黄金)": {
+        "fv_ticker": "gold",
+        "cftc_kw": ["GOLD", "COMMODITY"],
+        "color": "#FFD700"
+    },
+    "DXY (美元指数)": {
+        "fv_ticker": "us-dollar-index",
+        "cftc_kw": ["U.S. DOLLAR INDEX", "ICE"],
+        "color": "#1E90FF"
+    }
+}
 
 
+# --- 2. Finviz 抓取引擎 (替代 yfinance) ---
+def fetch_finviz_data(asset_ticker):
+    """
+    抓取 Finviz 期货详情页的 Snapshot 数据
+    """
+    url = f"https://finviz.com/futures_details.ashx?t={asset_ticker}&p=d1"
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Referer': 'https://finviz.com/'
+    }
 
-# --- 2. 核心辅助函数 ---
-def get_rss_news(ticker: str) -> List[str]:
-    """获取标的近 7 天实时新闻标题"""
     try:
-        url = f"https://news.google.com/rss/search?q={ticker}+stock+when:7d&hl=en-US&gl=US&ceid=US:en"
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        req = Request(url, headers=headers)
-        with urlopen(req, timeout=10) as response:
-            root = ET.fromstring(response.read())
-            return [t.text for item in root.findall('.//item')[:5] if (t := item.find('title')) is not None]
-    except:
-        return []
+        response = requests.get(url, headers=headers, timeout=15)
+        if response.status_code != 200:
+            return None
+
+        soup = BeautifulSoup(response.text, 'html.parser')
+        data = {}
+        # Finviz 的快照数据存储在 snapshot-table2 中
+        tables = soup.find_all('table', class_='snapshot-table2')
+        for table in tables:
+            for row in table.find_all('tr'):
+                cols = row.find_all('td')
+                for i in range(0, len(cols), 2):
+                    key = cols[i].text.strip()
+                    val = cols[i + 1].text.strip()
+                    data[key] = val
+        return data
+    except Exception as e:
+        st.sidebar.error(f"Finviz 抓取异常: {e}")
+        return None
 
 
-# --- 3. 节点逻辑 ---
-
-def discover_etf_node(state: GraphState):
-    """节点 1: 扫描最活跃 ETF 列表"""
+# --- 3. CFTC 物理包解析引擎 (历史筹码) ---
+@st.cache_data(ttl=43200)
+def fetch_cftc_historical_data():
+    """
+    直接从 CFTC 官网下载并合并 2025-2026 年度 Legacy 压缩包
+    """
     headers = {'User-Agent': 'Mozilla/5.0'}
-    url = "https://finviz.com/screener.ashx?v=111&f=ind_exchangetradedfund&o=-volume"
-    try:
-        req = Request(url, headers=headers)
-        with urlopen(req, timeout=15) as resp:
-            df = pd.read_html(io.StringIO(resp.read().decode('utf-8')))[-2]
-            return {"dynamic_etf_list": df['Ticker'].tolist()[:25]}
-    except:
-        return {"dynamic_etf_list": ['SPY', 'QQQ', 'IWM', 'SMH', 'XLK']}
+    urls = [
+        "https://www.cftc.gov/files/dea/history/deacot2026.zip",
+        "https://www.cftc.gov/files/dea/history/deacot2025.zip"
+    ]
 
-
-def sentiment_node(state: GraphState):
-    """节点 2: AI 实时舆情评分 (40% 权重)"""
-    etf_pool = state.get("dynamic_etf_list", [])
-    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-    parser = JsonOutputParser(pydantic_object=BatchSentiment)
-
-    sentiment_map, reason_map = {}, {}
-    status_placeholder = st.empty()
-
-    # 分批处理提高稳定性
-    for i in range(0, min(len(etf_pool), 12), 4):
-        batch = etf_pool[i:i + 4]
-        status_placeholder.text(f"🧪 AI 深度解析舆情中: {batch}...")
-        news_payload = [{"ticker": t, "news": get_rss_news(t)} for t in batch]
-
-        prompt = f"分析标的最新情绪：\n{parser.get_format_instructions()}\n数据：{json.dumps(news_payload)}"
+    all_dfs = []
+    for url in urls:
         try:
-            response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt,
-                                                      config={'response_mime_type': 'application/json'})
-            parsed = parser.parse(response.text)
-            for t, res in parsed['results'].items():
-                sentiment_map[t] = int((float(res['score']) + 1) * 50)
-                reason_map[t] = res['reason']
-        except:
-            continue
-    status_placeholder.empty()
-    return {"etf_news_sentiment": sentiment_map, "etf_news_reasons": reason_map}
-
-
-def etf_scanner_node(state: GraphState):
-    """节点 3: TA-Lib 量价指标 + AI 情绪融合 (60:40)"""
-    etf_pool = state.get("dynamic_etf_list", [])
-    sent_scores = state.get("etf_news_sentiment", {})
-    sent_reasons = state.get("etf_news_reasons", {})
-    results = []
-
-    for ticker in etf_pool:
-        try:
-            df = yf.download(ticker, start=datetime.now() - timedelta(days=60), progress=False)
-            if df is None or len(df) < 20:
-                continue
-
-            closes = df["Close"].iloc[:, 0].values if isinstance(df["Close"], pd.DataFrame) else df["Close"].values
-            volumes = df["Volume"].iloc[:, 0].values if isinstance(df["Volume"], pd.DataFrame) else df["Volume"].values
-            closes, volumes = closes.flatten().astype(float), volumes.flatten().astype(float)
-
-            obv = talib.OBV(closes, volumes)
-            slope = talib.LINEARREG_SLOPE(obv, timeperiod=5)[-1]
-            tech_score = int((closes[-1] / np.max(closes[-20:])) * 75 + (15 if slope > 0 else 0))
-
-            news_score = sent_scores.get(ticker, 50)
-            comp_score = int(tech_score * 0.6 + news_score * 0.4)
-
-            if comp_score >= 82 and slope > 0:
-                rec, reason = "🌟 强烈推荐", "量价舆情强力共振"
-            elif tech_score >= 75 and slope > 0:
-                rec, reason = "✅ 建议买入", "技术趋势多头占优"
-            elif news_score >= 80 and slope <= 0:
-                rec, reason = "⚠️ 警惕诱多", "情绪亢奋但资金面背离"
-            else:
-                rec, reason = "❌ 暂不推荐", "合力不足或趋势偏弱"
-
-            results.append(
-                {
-                    "代码": ticker,
-                    "现价": f"${closes[-1]:.2f}",
-                    "技术分": tech_score,
-                    "舆情分": news_score,
-                    "综合强度": comp_score,
-                    "决策建议": rec,
-                    "多头理由": reason,
-                    "AI解读": sent_reasons.get(ticker, "无"),
-                }
-            )
+            r = requests.get(url, headers=headers, timeout=20)
+            if r.status_code == 200:
+                with zipfile.ZipFile(io.BytesIO(r.content)) as z:
+                    for fname in z.namelist():
+                        with z.open(fname) as f:
+                            df = pd.read_csv(f, low_memory=False)
+                            df.columns = [str(c).strip() for c in df.columns]
+                            all_dfs.append(df)
         except:
             continue
 
-    df_out = pd.DataFrame(results)
+    if not all_dfs:
+        return pd.DataFrame()
 
-    # 兜底：空结果时补齐列，避免 sort_values KeyError
-    if df_out.empty:
-        df_out = pd.DataFrame(
-            columns=["代码", "现价", "技术分", "舆情分", "综合强度", "决策建议", "多头理由", "AI解读"]
-        )
-        return {"etf_highlights": df_out}
+    combined = pd.concat(all_dfs, ignore_index=True)
 
-    if "综合强度" in df_out.columns:
-        df_out = df_out.sort_values("综合强度", ascending=False)
+    # 模糊识别列名 (兼容空格、下划线、大小写)
+    def find_col(kws, cols):
+        for c in cols:
+            if all(k.lower() in c.lower() for k in kws): return c
+        return None
 
-    return {"etf_highlights": df_out}
+    d_col = find_col(['As of Date', 'YYMMDD'], combined.columns)
+    nc_l = find_col(['NonComm', 'Long'], combined.columns)
+    nc_s = find_col(['NonComm', 'Short'], combined.columns)
+    m_col = find_col(['Market', 'Exchange', 'Names'], combined.columns)
 
+    if not d_col or not nc_l:
+        return pd.DataFrame()
 
-def fetch_market_node(state: GraphState):
-    """节点 4: 板块行情原始数据"""
-    headers = {'User-Agent': 'Mozilla/5.0'}
-    try:
-        def get_data(g):
-            url = f"https://finviz.com/groups.ashx?g={g}&v=140&o=-perf1m"
-            req = Request(url, headers=headers)
-            with urlopen(req, timeout=15) as resp:
-                df = pd.read_html(io.StringIO(resp.read().decode('utf-8')))[-2]
-                for col in ['Perf Week', 'Perf Month']:
-                    df[col] = df[col].astype(str).str.replace('%', '').replace('-', '0').astype(float)
-                return df
+    combined['report_date'] = pd.to_datetime(combined[d_col], errors='coerce').dt.normalize()
+    combined['nc_net'] = combined[nc_l] - combined[nc_s]
+    combined['m_name'] = combined[m_col].astype(str)
 
-        return {"raw_sectors": get_data('sector'), "raw_industries": get_data('industry')}
-    except:
-        return {"error": "板块抓取失败"}
+    return combined.dropna(subset=['report_date', 'nc_net'])
 
 
-def ai_modeling_node(state: GraphState):
-    """节点 5: AI 自动化层级树建模 + ETF 中文名映射"""
-    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+# --- 4. 主程序界面 ---
+def main():
+    st.set_page_config(page_title="2026 Finviz/CFTC 筹码雷达", layout="wide")
 
-    sectors = state["raw_sectors"]["Name"].tolist() if state.get("raw_sectors") is not None else []
-    industries = state["raw_industries"]["Name"].tolist() if state.get("raw_industries") is not None else []
-    etfs = state.get("dynamic_etf_list", [])[:25]
+    st.title("🛡️ 专家级筹码监控：Finviz 实时感官 + CFTC 历史底牌")
+    st.markdown("---")
 
-    # 要求模型返回固定结构：market_hierarchy + etf_cn_map
-    prompt = (
-        "请输出 JSON，包含两个字段：\n"
-        "1) market_hierarchy: 以 Sector 英文名为 key，value 包含 cn(中文名) 与 sub(子行业数组)，"
-        "sub 元素包含 en/cn/desc。\n"
-        "2) etf_cn_map: 以 ETF ticker 为 key，value 为中文名（无法确定则给出简短中文或原 ticker）。\n"
-        f"Sectors: {sectors}\n"
-        f"Industries: {industries}\n"
-        f"ETFs: {etfs}\n"
-    )
+    asset_label = st.sidebar.selectbox("选择监控资产", list(ASSET_CONFIG.keys()))
+    window = st.sidebar.slider("分析窗口 (周)", 26, 104, 52)
+    conf = ASSET_CONFIG[asset_label]
 
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt,
-            config={"response_mime_type": "application/json"},
-        )
-        h_data = json.loads(response.text) if response and getattr(response, "text", None) else {}
+    # 4.1 获取 Finviz 实时快照
+    with st.spinner('正在透视 Finviz 实时情绪...'):
+        fv_snapshot = fetch_finviz_data(conf['fv_ticker'])
 
-        # 兜底规范化
-        market_h = h_data.get("market_hierarchy") if isinstance(h_data, dict) else {}
-        etf_cn_map = h_data.get("etf_cn_map") if isinstance(h_data, dict) else {}
+    if fv_snapshot:
+        # 展示 Finviz 核心指标卡
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("当前成交价", fv_snapshot.get('Price', 'N/A'), fv_snapshot.get('Change', 'N/A'))
+        c2.metric("52周波动区间", fv_snapshot.get('52W Range', 'N/A'))
+        # Finviz COT 指数：显示 Speculators 的相对强度
+        c3.metric("Finviz COT (Spec)", fv_snapshot.get('COT Speculator', 'N/A'))
+        c4.metric("Finviz COT (Comm)", fv_snapshot.get('COT Commercial', 'N/A'))
 
-        if not isinstance(market_h, dict):
-            market_h = {}
-        if not isinstance(etf_cn_map, dict):
-            etf_cn_map = {}
+    # 4.2 获取 CFTC 历史趋势
+    with st.spinner('正在解压 CFTC 历史持仓包...'):
+        raw_data = fetch_cftc_historical_data()
 
-        payload = {"market_hierarchy": market_h, "etf_cn_map": etf_cn_map}
-        with open("market_hierarchy.json", "w", encoding="utf-8") as f:
-            json.dump(payload, f, ensure_ascii=False, indent=4)
+    if not raw_data.empty:
+        # 资产过滤
+        df = raw_data[raw_data['m_name'].str.contains(conf['cftc_kw'][0], case=False) &
+                      raw_data['m_name'].str.contains(conf['cftc_kw'][1], case=False)].copy()
 
-        return {"hierarchy_db": market_h, "etf_cn_map": etf_cn_map}
-    except:
-        return {}
+        if df.empty:
+            st.error("CFTC 数据匹配失败，请检查关键词。")
+            return
+
+        df = df.sort_values('report_date').drop_duplicates('report_date')
+
+        # 计算 COT Index (52周归一化)
+        df['rmin'] = df['nc_net'].rolling(window).min()
+        df['rmax'] = df['nc_net'].rolling(window).max()
+        df['cot_index'] = (df['nc_net'] - df['rmin']) / (df['rmax'] - df['rmin']) * 100
+
+        # --- 5. 绘图逻辑 (Matplotlib) ---
+
+        fig, ax1 = plt.subplots(figsize=(14, 6))
+        plt.style.use('dark_background')
+
+        # 绘制投机大户净持仓 (左轴)
+        ax1.fill_between(df['report_date'], df['nc_net'], 0, color='red', alpha=0.3, label="大户(Non-Comm)净持仓")
+        ax1.set_ylabel("净持仓张数 (Net Positions)", color='red', fontsize=12)
+        ax1.tick_params(axis='y', labelcolor='red')
+
+        # 绘制 COT Index (右轴)
+        ax2 = ax1.twinx()
+        ax2.plot(df['report_date'], df['cot_index'], color='cyan', linewidth=1.5, label="COT Index (信号线)")
+        ax2.axhline(80, color='yellow', linestyle='--', alpha=0.5, label="超买阈值 (80)")
+        ax2.axhline(20, color='lime', linestyle='--', alpha=0.5, label="超卖阈值 (20)")
+        ax2.set_ylabel("COT Index (%)", color='cyan', fontsize=12)
+        ax2.tick_params(axis='y', labelcolor='cyan')
+
+        plt.title(f"{asset_label} 历史筹码动能分析 (2025-2026)", fontsize=16, pad=20)
+        ax1.grid(alpha=0.1)
+
+        st.pyplot(fig)
+
+        # 4.3 专家风险识别
+        st.markdown("---")
+        latest_idx = df['cot_index'].iloc[-1]
+
+        # 结合 2026 年 1 月市场真实逻辑：白银从 $120 跌至 $84
+        st.subheader("🧠 筹码风险哨兵")
+        if latest_idx > 80:
+            st.warning(f"🚨 预警：当前 {asset_label} 处于【极端拥挤】状态（COT Index: {latest_idx:.1f}%）。"
+                       "Finviz 数据显示大户情绪过热，警惕高位获利了结引发的闪崩。")
+        elif latest_idx < 20:
+            st.success(f"✅ 机会：当前 {asset_label} 处于【筹码出清】阶段（COT Index: {latest_idx:.1f}%）。"
+                       "大户空头头寸已接近极值，关注超跌反弹机会。")
+        else:
+            st.info(f"📊 状态：当前筹码分布相对中性（COT Index: {latest_idx:.1f}%）。"
+                    "建议关注 Finviz 实时价格变动，寻找趋势性突破。")
 
 
-# --- 4. 构建工作流 ---
-def build_workflow():
-    workflow = StateGraph(GraphState)
-    workflow.add_node("discover", discover_etf_node)
-    workflow.add_node("sentiment", sentiment_node)
-    workflow.add_node("scanner", etf_scanner_node)
-    workflow.add_node("fetcher", fetch_market_node)
-    workflow.add_node("ai", ai_modeling_node)
-
-    workflow.add_edge(START, "discover")
-    workflow.add_edge("discover", "sentiment")
-    workflow.add_edge("sentiment", "scanner")
-    workflow.add_edge("scanner", "fetcher")
-    workflow.add_edge("fetcher", "ai")
-    workflow.add_edge("ai", END)
-    return workflow.compile()
-
-
-# --- 5. 渲染 UI ---
-
-def render_ui():
-    st.set_page_config(page_title="AI 量化决策系统", layout="wide")
-    st.title("🦅 智能多头量化与行业解析看板")
-
-    if st.button("🚀 启动全流程深度扫描", type="primary"):
-        app = build_workflow()
-        current_state = {
-            "dynamic_etf_list": [],
-            "etf_news_sentiment": {},
-            "etf_news_reasons": {},
-            "etf_highlights": pd.DataFrame(),
-            "raw_sectors": None,
-            "raw_industries": None,
-            "hierarchy_db": {},
-            "etf_cn_map": {},  # ✅ 新增
-            "error": None,
-        }
-        with st.status("正在进行多维交叉分析...", expanded=True) as status:
-            for event in app.stream(current_state):
-                for node_name, output in event.items():
-                    st.write(f"✅ 节点 `{node_name}` 处理完毕")
-                    if output:
-                        current_state.update(output)
-            status.update(label="扫描完毕!", state="complete")
-        st.session_state.final_state = current_state
-
-    if "final_state" in st.session_state:
-        state = st.session_state.final_state
-
-        # --- ETF 中文名映射（用于主表 + 行业透视树展示） ---
-        etf_cn_map = state.get("etf_cn_map") or {}
-        if not isinstance(etf_cn_map, dict):
-            etf_cn_map = {}
-
-        # 1. 多头决策主表：增加「中文名」列
-        if state.get("etf_highlights") is not None and not state["etf_highlights"].empty:
-            st.subheader("🔥 实时量化与舆情共振榜单")
-            df_show = state["etf_highlights"].copy()
-            if "代码" in df_show.columns:
-                df_show.insert(0, "中文名", df_show["代码"].map(lambda x: etf_cn_map.get(str(x), str(x))))
-
-            st.dataframe(
-                df_show,
-                width="stretch",
-                hide_index=True,
-                column_config={
-                    "综合强度": st.column_config.ProgressColumn(min_value=0, max_value=100),
-                    "多头理由": st.column_config.TextColumn(width="large"),
-                },
-            )
-
-        # 2. 行业透视树：在标题处展示 ETF 中文名列表（来自动态 ETF 池）
-        if state.get("raw_sectors") is not None:
-            st.divider()
-            st.subheader("🌳 行业透视层级树 (AI 归类)")
-
-            # 展示 ETF 中文名概览（放在行业树上方）
-            etf_pool = state.get("dynamic_etf_list", [])[:25]
-            if etf_pool:
-                cn_list = [etf_cn_map.get(t, t) for t in etf_pool]
-                st.caption("本次扫描 ETF: " + " / ".join(cn_list))
-
-            s_df, i_df = state["raw_sectors"], state["raw_industries"]
-
-            # 关键修复：把 hierarchy_db 规范化为 dict，避免 list.get 报错
-            h_db = state.get("hierarchy_db") or {}
-            if isinstance(h_db, list):
-                h_db = h_db[0] if (len(h_db) > 0 and isinstance(h_db[0], dict)) else {}
-            elif not isinstance(h_db, dict):
-                h_db = {}
-
-            for _, s_row in s_df.sort_values("Perf Month", ascending=False).iterrows():
-                s_en = s_row["Name"]
-                s_meta = h_db.get(s_en, {"cn": s_en, "sub": []})
-                icon = "🔴" if s_row["Perf Month"] > 0 else "🟢"
-
-                with st.expander(f"{icon} {s_row['Perf Month']}% | {s_meta.get('cn', s_en)}"):
-                    sub_list = s_meta.get("sub", [])
-                    sub_names = [item.get("en") for item in sub_list if isinstance(item, dict)]
-                    sub_data = i_df[i_df["Name"].isin(sub_names)].copy()
-
-                    if not sub_data.empty:
-                        map_dict = {
-                            item["en"]: (item.get("cn", item["en"]), item.get("desc", ""))
-                            for item in sub_list
-                            if isinstance(item, dict) and "en" in item
-                        }
-                        sub_data["中文名"] = sub_data["Name"].apply(lambda x: map_dict.get(x, (x, ""))[0])
-                        sub_data["月涨幅%"] = sub_data["Perf Month"]
-                        st.dataframe(
-                            sub_data[["中文名", "Name", "月涨幅%"]].rename(columns={"Name": "原名"}).style.map(
-                                lambda x: (
-                                    "color: #ff4b4b; font-weight: bold"
-                                    if isinstance(x, float) and x > 0
-                                    else "color: #09ab3b; font-weight: bold"
-                                    if isinstance(x, float) and x < 0
-                                    else ""
-                                ),
-                                subset=["月涨幅%"],
-                            ),
-                            width="stretch",
-                            hide_index=True,
-                        )
 if __name__ == "__main__":
-    render_ui()
+    main()
