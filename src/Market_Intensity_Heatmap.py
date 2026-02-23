@@ -120,10 +120,12 @@ def fetch_ticker_data(ticker: str) -> pd.DataFrame | None:
     try:
         r = requests.get(url, timeout=15)
         if r.status_code != 200:
+            st.error(f"API 请求失败 {ticker}: {r.status_code} {r.text}")
             return None
 
         df = pd.DataFrame(r.json())
         if df.empty:
+            st.warning(f"API 返回空数据 {ticker}")
             return None
 
         df["date"] = pd.to_datetime(df["date"], errors="coerce")
