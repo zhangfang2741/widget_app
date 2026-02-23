@@ -65,10 +65,13 @@ CHINESE_NAMES = {
     "XLU": "公用事业行业精选指数ETF-SPDR",
     "VPU": "先锋公用事业ETF-Vanguard",
     "NEE": "新纪元能源(个股)",
-    # 12 另类/跨行业
+    # 12 另类/跨行业/宏观 (新增全球宏观维度)
+    "EEM": "新兴市场股票指数ETF-iShares",
+    "VEA": "发达市场(不含美)指数ETF-Vanguard",
+    "FXI": "中国大盘股指数ETF-iShares",
     "ARKK": "方舟创新ETF-ARK Invest",
     "BITO": "比特币策略ETF-ProShares",
-    "MSOS": "大麻核心ETF-AdvisorShares",
+    "MSOS": "大麻核心ETF-AdvisorShares"
 }
 
 # 行业层级定义 (涵盖100+细分)
@@ -84,7 +87,7 @@ ETF_LIBRARY = {
     "09 通信服务": ["XLC", "VOX", "SOCL"],
     "10 房地产": ["XLRE", "VNQ", "REZ"],
     "11 公用事业": ["XLU", "VPU", "NEE"],
-    "12 跨行业/另类": ["ARKK", "BITO", "MSOS"],
+    "12 跨行业/全球宏观": ["EEM", "VEA", "FXI", "ARKK", "BITO", "MSOS"]
 }
 
 TICKER_TO_SECTOR = {t: s for s, ts in ETF_LIBRARY.items() for t in ts}
