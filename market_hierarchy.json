@@ -1,0 +1,761 @@
+{
+    "market_hierarchy": {
+        "Utilities": {
+            "cn": "公用事业",
+            "sub": [
+                {
+                    "en": "Waste Management",
+                    "cn": "废弃物管理",
+                    "desc": "废弃物管理"
+                },
+                {
+                    "en": "Utilities - Renewable",
+                    "cn": "可再生能源",
+                    "desc": "可再生能源"
+                },
+                {
+                    "en": "Utilities - Regulated Water",
+                    "cn": "受监管的水务",
+                    "desc": "受监管的水务"
+                },
+                {
+                    "en": "Utilities - Regulated Gas",
+                    "cn": "受监管的天然气",
+                    "desc": "受监管的天然气"
+                },
+                {
+                    "en": "Utilities - Regulated Electric",
+                    "cn": "受监管的电力",
+                    "desc": "受监管的电力"
+                },
+                {
+                    "en": "Utilities - Independent Power Producers",
+                    "cn": "独立电力生产商",
+                    "desc": "独立电力生产商"
+                },
+                {
+                    "en": "Utilities - Diversified",
+                    "cn": "多元化公用事业",
+                    "desc": "多元化公用事业"
+                },
+                {
+                    "en": "Uranium",
+                    "cn": "铀",
+                    "desc": "铀"
+                }
+            ]
+        },
+        "Technology": {
+            "cn": "技术",
+            "sub": [
+                {
+                    "en": "Software - Infrastructure",
+                    "cn": "软件基础设施",
+                    "desc": "软件基础设施"
+                },
+                {
+                    "en": "Software - Application",
+                    "cn": "应用软件",
+                    "desc": "应用软件"
+                },
+                {
+                    "en": "Semiconductors",
+                    "cn": "半导体",
+                    "desc": "半导体"
+                },
+                {
+                    "en": "Semiconductor Equipment & Materials",
+                    "cn": "半导体设备与材料",
+                    "desc": "半导体设备与材料"
+                },
+                {
+                    "en": "Scientific & Technical Instruments",
+                    "cn": "科学和技术仪器",
+                    "desc": "科学和技术仪器"
+                },
+                {
+                    "en": "Information Technology Services",
+                    "cn": "信息技术服务",
+                    "desc": "信息技术服务"
+                },
+                {
+                    "en": "Internet Content & Information",
+                    "cn": "互联网内容与信息",
+                    "desc": "互联网内容与信息"
+                },
+                {
+                    "en": "Electronics & Computer Distribution",
+                    "cn": "电子与计算机分销",
+                    "desc": "电子与计算机分销"
+                },
+                {
+                    "en": "Electronic Gaming & Multimedia",
+                    "cn": "电子游戏与多媒体",
+                    "desc": "电子游戏与多媒体"
+                },
+                {
+                    "en": "Electronic Components",
+                    "cn": "电子元件",
+                    "desc": "电子元件"
+                },
+                {
+                    "en": "Computer Hardware",
+                    "cn": "计算机硬件",
+                    "desc": "计算机硬件"
+                },
+                {
+                    "en": "Communication Equipment",
+                    "cn": "通信设备",
+                    "desc": "通信设备"
+                }
+            ]
+        },
+        "Real Estate": {
+            "cn": "房地产",
+            "sub": [
+                {
+                    "en": "REIT - Specialty",
+                    "cn": "房地产投资信托-专业",
+                    "desc": "房地产投资信托-专业"
+                },
+                {
+                    "en": "REIT - Retail",
+                    "cn": "房地产投资信托-零售",
+                    "desc": "房地产投资信托-零售"
+                },
+                {
+                    "en": "REIT - Residential",
+                    "cn": "房地产投资信托-住宅",
+                    "desc": "房地产投资信托-住宅"
+                },
+                {
+                    "en": "REIT - Office",
+                    "cn": "房地产投资信托-办公",
+                    "desc": "房地产投资信托-办公"
+                },
+                {
+                    "en": "REIT - Mortgage",
+                    "cn": "房地产投资信托-抵押贷款",
+                    "desc": "房地产投资信托-抵押贷款"
+                },
+                {
+                    "en": "REIT - Industrial",
+                    "cn": "房地产投资信托-工业",
+                    "desc": "房地产投资信托-工业"
+                },
+                {
+                    "en": "REIT - Hotel & Motel",
+                    "cn": "房地产投资信托-酒店与汽车旅馆",
+                    "desc": "房地产投资信托-酒店与汽车旅馆"
+                },
+                {
+                    "en": "REIT - Healthcare Facilities",
+                    "cn": "房地产投资信托-医疗保健设施",
+                    "desc": "房地产投资信托-医疗保健设施"
+                },
+                {
+                    "en": "REIT - Diversified",
+                    "cn": "房地产投资信托-多元化",
+                    "desc": "房地产投资信托-多元化"
+                },
+                {
+                    "en": "Real Estate Services",
+                    "cn": "房地产服务",
+                    "desc": "房地产服务"
+                },
+                {
+                    "en": "Real Estate - Diversified",
+                    "cn": "多元化房地产",
+                    "desc": "多元化房地产"
+                },
+                {
+                    "en": "Real Estate - Development",
+                    "cn": "房地产开发",
+                    "desc": "房地产开发"
+                },
+                {
+                    "en": "Residential Construction",
+                    "cn": "住宅建设",
+                    "desc": "住宅建设"
+                }
+            ]
+        },
+        "Industrials": {
+            "cn": "工业",
+            "sub": [
+                {
+                    "en": "Trucking",
+                    "cn": "货运",
+                    "desc": "货运"
+                },
+                {
+                    "en": "Specialty Industrial Machinery",
+                    "cn": "专用工业机械",
+                    "desc": "专用工业机械"
+                },
+                {
+                    "en": "Staffing & Employment Services",
+                    "cn": "人才招聘",
+                    "desc": "人才招聘"
+                },
+                {
+                    "en": "Security & Protection Services",
+                    "cn": "安全与保护服务",
+                    "desc": "安全与保护服务"
+                },
+                {
+                    "en": "Rental & Leasing Services",
+                    "cn": "租赁服务",
+                    "desc": "租赁服务"
+                },
+                {
+                    "en": "Railroads",
+                    "cn": "铁路",
+                    "desc": "铁路"
+                },
+                {
+                    "en": "Pollution & Treatment Controls",
+                    "cn": "污染与治理控制",
+                    "desc": "污染与治理控制"
+                },
+                {
+                    "en": "Packaging & Containers",
+                    "cn": "包装与容器",
+                    "desc": "包装与容器"
+                },
+                {
+                    "en": "Metal Fabrication",
+                    "cn": "金属制造",
+                    "desc": "金属制造"
+                },
+                {
+                    "en": "Marine Shipping",
+                    "cn": "海运",
+                    "desc": "海运"
+                },
+                {
+                    "en": "Industrial Distribution",
+                    "cn": "工业分销",
+                    "desc": "工业分销"
+                },
+                {
+                    "en": "Integrated Freight & Logistics",
+                    "cn": "综合货运与物流",
+                    "desc": "综合货运与物流"
+                },
+                {
+                    "en": "Engineering & Construction",
+                    "cn": "工程与建设",
+                    "desc": "工程与建设"
+                },
+                {
+                    "en": "Electrical Equipment & Parts",
+                    "cn": "电气设备与零件",
+                    "desc": "电气设备与零件"
+                },
+                {
+                    "en": "Business Equipment & Supplies",
+                    "cn": "商业设备与用品",
+                    "desc": "商业设备与用品"
+                },
+                {
+                    "en": "Building Products & Equipment",
+                    "cn": "建筑产品与设备",
+                    "desc": "建筑产品与设备"
+                },
+                {
+                    "en": "Aerospace & Defense",
+                    "cn": "航空航天与国防",
+                    "desc": "航空航天与国防"
+                },
+                {
+                    "en": "Farm & Heavy Construction Machinery",
+                    "cn": "农业与重型建筑机械",
+                    "desc": "农业与重型建筑机械"
+                }
+            ]
+        },
+        "Healthcare": {
+            "cn": "医疗保健",
+            "sub": [
+                {
+                    "en": "Pharmaceutical Retailers",
+                    "cn": "医药零售商",
+                    "desc": "医药零售商"
+                },
+                {
+                    "en": "Medical Instruments & Supplies",
+                    "cn": "医疗器械与用品",
+                    "desc": "医疗器械与用品"
+                },
+                {
+                    "en": "Medical Distribution",
+                    "cn": "医疗分销",
+                    "desc": "医疗分销"
+                },
+                {
+                    "en": "Medical Devices",
+                    "cn": "医疗设备",
+                    "desc": "医疗设备"
+                },
+                {
+                    "en": "Medical Care Facilities",
+                    "cn": "医疗护理设施",
+                    "desc": "医疗护理设施"
+                },
+                {
+                    "en": "Healthcare Plans",
+                    "cn": "医疗计划",
+                    "desc": "医疗计划"
+                },
+                {
+                    "en": "Health Information Services",
+                    "cn": "健康信息服务",
+                    "desc": "健康信息服务"
+                },
+                {
+                    "en": "Drug Manufacturers - Specialty & Generic",
+                    "cn": "专业和通用药品制造商",
+                    "desc": "专业和通用药品制造商"
+                },
+                {
+                    "en": "Drug Manufacturers - General",
+                    "cn": "通用药品制造商",
+                    "desc": "通用药品制造商"
+                },
+                {
+                    "en": "Diagnostics & Research",
+                    "cn": "诊断与研究",
+                    "desc": "诊断与研究"
+                },
+                {
+                    "en": "Biotechnology",
+                    "cn": "生物技术",
+                    "desc": "生物技术"
+                }
+            ]
+        },
+        "Financial": {
+            "cn": "金融",
+            "sub": [
+                {
+                    "en": "Mortgage Finance",
+                    "cn": "抵押贷款融资",
+                    "desc": "抵押贷款融资"
+                },
+                {
+                    "en": "Insurance Brokers",
+                    "cn": "保险经纪人",
+                    "desc": "保险经纪人"
+                },
+                {
+                    "en": "Insurance - Specialty",
+                    "cn": "专业保险",
+                    "desc": "专业保险"
+                },
+                {
+                    "en": "Insurance - Reinsurance",
+                    "cn": "再保险",
+                    "desc": "再保险"
+                },
+                {
+                    "en": "Insurance - Property & Casualty",
+                    "cn": "财产与意外保险",
+                    "desc": "财产与意外保险"
+                },
+                {
+                    "en": "Insurance - Life",
+                    "cn": "人寿保险",
+                    "desc": "人寿保险"
+                },
+                {
+                    "en": "Insurance - Diversified",
+                    "cn": "多元化保险",
+                    "desc": "多元化保险"
+                },
+                {
+                    "en": "Financial Data & Stock Exchanges",
+                    "cn": "金融数据与证券交易所",
+                    "desc": "金融数据与证券交易所"
+                },
+                {
+                    "en": "Financial Conglomerates",
+                    "cn": "金融集团",
+                    "desc": "金融集团"
+                },
+                {
+                    "en": "Credit Services",
+                    "cn": "信贷服务",
+                    "desc": "信贷服务"
+                },
+                {
+                    "en": "Capital Markets",
+                    "cn": "资本市场",
+                    "desc": "资本市场"
+                },
+                {
+                    "en": "Banks - Regional",
+                    "cn": "区域性银行",
+                    "desc": "区域性银行"
+                },
+                {
+                    "en": "Banks - Diversified",
+                    "cn": "多元化银行",
+                    "desc": "多元化银行"
+                },
+                {
+                    "en": "Asset Management",
+                    "cn": "资产管理",
+                    "desc": "资产管理"
+                }
+            ]
+        },
+        "Energy": {
+            "cn": "能源",
+            "sub": [
+                {
+                    "en": "Thermal Coal",
+                    "cn": "动力煤",
+                    "desc": "动力煤"
+                },
+                {
+                    "en": "Solar",
+                    "cn": "太阳能",
+                    "desc": "太阳能"
+                },
+                {
+                    "en": "Oil & Gas Refining & Marketing",
+                    "cn": "石油与天然气炼制与销售",
+                    "desc": "石油与天然气炼制与销售"
+                },
+                {
+                    "en": "Oil & Gas Midstream",
+                    "cn": "油气中游",
+                    "desc": "油气中游"
+                },
+                {
+                    "en": "Oil & Gas Integrated",
+                    "cn": "油气一体化",
+                    "desc": "油气一体化"
+                },
+                {
+                    "en": "Oil & Gas Equipment & Services",
+                    "cn": "油气设备与服务",
+                    "desc": "油气设备与服务"
+                },
+                {
+                    "en": "Oil & Gas E&P",
+                    "cn": "油气勘探与生产",
+                    "desc": "油气勘探与生产"
+                },
+                {
+                    "en": "Oil & Gas Drilling",
+                    "cn": "油气钻井",
+                    "desc": "油气钻井"
+                }
+            ]
+        },
+        "Consumer Defensive": {
+            "cn": "必需消费品",
+            "sub": [
+                {
+                    "en": "Tobacco",
+                    "cn": "烟草",
+                    "desc": "烟草"
+                },
+                {
+                    "en": "Packaged Foods",
+                    "cn": "包装食品",
+                    "desc": "包装食品"
+                },
+                {
+                    "en": "Household & Personal Products",
+                    "cn": "家庭与个人用品",
+                    "desc": "家庭与个人用品"
+                },
+                {
+                    "en": "Grocery Stores",
+                    "cn": "杂货店",
+                    "desc": "杂货店"
+                },
+                {
+                    "en": "Food Distribution",
+                    "cn": "食品分销",
+                    "desc": "食品分销"
+                },
+                {
+                    "en": "Beverages - Wineries & Distilleries",
+                    "cn": "葡萄酒厂与酿酒厂",
+                    "desc": "葡萄酒厂与酿酒厂"
+                },
+                {
+                    "en": "Beverages - Non-Alcoholic",
+                    "cn": "非酒精饮料",
+                    "desc": "非酒精饮料"
+                },
+                {
+                    "en": "Beverages - Brewers",
+                    "cn": "啤酒厂",
+                    "desc": "啤酒厂"
+                },
+                {
+                    "en": "Confectioners",
+                    "cn": "糖果商",
+                    "desc": "糖果商"
+                }
+            ]
+        },
+        "Consumer Cyclical": {
+            "cn": "可选消费",
+            "sub": [
+                {
+                    "en": "Travel Services",
+                    "cn": "旅游服务",
+                    "desc": "旅游服务"
+                },
+                {
+                    "en": "Specialty Retail",
+                    "cn": "专业零售",
+                    "desc": "专业零售"
+                },
+                {
+                    "en": "Restaurants",
+                    "cn": "餐厅",
+                    "desc": "餐厅"
+                },
+                {
+                    "en": "Resorts & Casinos",
+                    "cn": "度假村与赌场",
+                    "desc": "度假村与赌场"
+                },
+                {
+                    "en": "Recreational Vehicles",
+                    "cn": "休闲车",
+                    "desc": "休闲车"
+                },
+                {
+                    "en": "Personal Services",
+                    "cn": "个人服务",
+                    "desc": "个人服务"
+                },
+                {
+                    "en": "Luxury Goods",
+                    "cn": "奢侈品",
+                    "desc": "奢侈品"
+                },
+                {
+                    "en": "Lodging",
+                    "cn": "住宿",
+                    "desc": "住宿"
+                },
+                {
+                    "en": "Leisure",
+                    "cn": "休闲",
+                    "desc": "休闲"
+                },
+                {
+                    "en": "Internet Retail",
+                    "cn": "互联网零售",
+                    "desc": "互联网零售"
+                },
+                {
+                    "en": "Home Improvement Retail",
+                    "cn": "家装零售",
+                    "desc": "家装零售"
+                },
+                {
+                    "en": "Gambling",
+                    "cn": "赌博",
+                    "desc": "赌博"
+                },
+                {
+                    "en": "Furnishings, Fixtures & Appliances",
+                    "cn": "家具、装置和电器",
+                    "desc": "家具、装置和电器"
+                },
+                {
+                    "en": "Footwear & Accessories",
+                    "cn": "鞋类与配饰",
+                    "desc": "鞋类与配饰"
+                },
+                {
+                    "en": "Entertainment",
+                    "cn": "娱乐",
+                    "desc": "娱乐"
+                },
+                {
+                    "en": "Discount Stores",
+                    "cn": "折扣店",
+                    "desc": "折扣店"
+                },
+                {
+                    "en": "Department Stores",
+                    "cn": "百货商店",
+                    "desc": "百货商店"
+                },
+                {
+                    "en": "Consumer Electronics",
+                    "cn": "消费电子产品",
+                    "desc": "消费电子产品"
+                },
+                {
+                    "en": "Auto Parts",
+                    "cn": "汽车零件",
+                    "desc": "汽车零件"
+                },
+                {
+                    "en": "Auto Manufacturers",
+                    "cn": "汽车制造商",
+                    "desc": "汽车制造商"
+                },
+                {
+                    "en": "Auto & Truck Dealerships",
+                    "cn": "汽车与卡车经销商",
+                    "desc": "汽车与卡车经销商"
+                },
+                {
+                    "en": "Apparel Retail",
+                    "cn": "服装零售",
+                    "desc": "服装零售"
+                },
+                {
+                    "en": "Apparel Manufacturing",
+                    "cn": "服装制造",
+                    "desc": "服装制造"
+                }
+            ]
+        },
+        "Communication Services": {
+            "cn": "通信服务",
+            "sub": [
+                {
+                    "en": "Telecom Services",
+                    "cn": "电信服务",
+                    "desc": "电信服务"
+                },
+                {
+                    "en": "Publishing",
+                    "cn": "出版",
+                    "desc": "出版"
+                },
+                {
+                    "en": "Broadcasting",
+                    "cn": "广播",
+                    "desc": "广播"
+                },
+                {
+                    "en": "Advertising Agencies",
+                    "cn": "广告公司",
+                    "desc": "广告公司"
+                }
+            ]
+        },
+        "Basic Materials": {
+            "cn": "基础材料",
+            "sub": [
+                {
+                    "en": "Steel",
+                    "cn": "钢铁",
+                    "desc": "钢铁"
+                },
+                {
+                    "en": "Specialty Chemicals",
+                    "cn": "特种化学品",
+                    "desc": "特种化学品"
+                },
+                {
+                    "en": "Silver",
+                    "cn": "白银",
+                    "desc": "白银"
+                },
+                {
+                    "en": "Shell Companies",
+                    "cn": "空壳公司",
+                    "desc": "空壳公司"
+                },
+                {
+                    "en": "Other Precious Metals & Mining",
+                    "cn": "其他贵金属与采矿",
+                    "desc": "其他贵金属与采矿"
+                },
+                {
+                    "en": "Other Industrial Metals & Mining",
+                    "cn": "其他工业金属与采矿",
+                    "desc": "其他工业金属与采矿"
+                },
+                {
+                    "en": "Paper & Paper Products",
+                    "cn": "纸和纸制品",
+                    "desc": "纸和纸制品"
+                },
+                {
+                    "en": "Lumber & Wood Production",
+                    "cn": "木材与木材生产",
+                    "desc": "木材与木材生产"
+                },
+                {
+                    "en": "Gold",
+                    "cn": "黄金",
+                    "desc": "黄金"
+                },
+                {
+                    "en": "Farm Products",
+                    "cn": "农产品",
+                    "desc": "农产品"
+                },
+                {
+                    "en": "Coking Coal",
+                    "cn": "焦煤",
+                    "desc": "焦煤"
+                },
+                {
+                    "en": "Chemicals",
+                    "cn": "化学制品",
+                    "desc": "化学制品"
+                },
+                {
+                    "en": "Building Materials",
+                    "cn": "建筑材料",
+                    "desc": "建筑材料"
+                },
+                {
+                    "en": "Aluminum",
+                    "cn": "铝",
+                    "desc": "铝"
+                },
+                {
+                    "en": "Agricultural Inputs",
+                    "cn": "农业投入品",
+                    "desc": "农业投入品"
+                },
+                {
+                    "en": "Copper",
+                    "cn": "铜",
+                    "desc": "铜"
+                }
+            ]
+        }
+    },
+    "etf_cn_map": {
+        "SOXS": "三倍做空半导体",
+        "ZSL": "ProShares UltraShort Silver",
+        "SLV": "iShares Silver Trust",
+        "TZA": "Direxion Daily Small Cap Bear 3X Shares",
+        "DUST": "Direxion Daily Gold Miners Bear 2X Shares",
+        "TQQQ": "三倍做多纳斯达克",
+        "TSLL": "Direxion Daily TSLA Bull 1.5X Shares",
+        "BITO": "ProShares Bitcoin Strategy ETF",
+        "SPY": "标普500指数ETF",
+        "SOXL": "三倍做多半导体",
+        "TSLS": "Direxion Daily TSLA Bear 1X Shares",
+        "XLE": "能源板块ETF",
+        "NVD": "GraniteShares 1.75x Long NVDA Daily ETF",
+        "EWZ": "巴西ETF",
+        "MSTX": "Simple Moving Average Crossover Strategy ETF",
+        "IBIT": "iShares Bitcoin Trust",
+        "XLF": "金融板块ETF",
+        "FNGD": "Direxion Daily FANG Bear 3X Shares",
+        "QQQ": "纳斯达克100指数ETF",
+        "IWM": "罗素2000指数ETF"
+    }
+}
