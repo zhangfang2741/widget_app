@@ -1,3 +1,9 @@
+import os
+# 禁用当前进程的代理设置，直接连接互联网
+os.environ['HTTP_PROXY'] = ''
+os.environ['HTTPS_PROXY'] = ''
+os.environ['no_proxy'] = '*'
+
 import streamlit as st
 from dotenv import load_dotenv as load_env
 load_env()

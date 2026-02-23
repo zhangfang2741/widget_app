@@ -22,5 +22,8 @@ dependencies = [
     "TA-Lib",
     "ipykernel>=7.1.0",
     "certifi",
-    "streamlit-aggrid"
+    "streamlit-aggrid",
+    "fastapi",
+    "uvicorn",
+    "python-alipay-sdk"
 ]
