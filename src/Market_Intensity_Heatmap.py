@@ -110,7 +110,8 @@ def fetch_ticker_data(ticker: str) -> pd.DataFrame | None:
                 if required.issubset(set(obj.columns)):
                     return obj
                 # 缓存是旧结构或坏数据：忽略，继续走网络拉取覆盖缓存
-        except Exception:
+        except Exception as e:
+            st.warning(f"无法读取缓存 {cache_path}: {e}")
             pass
 
     start_date = (datetime.datetime.now() - datetime.timedelta(days=365)).strftime("%Y-%m-%d")
@@ -138,11 +139,13 @@ def fetch_ticker_data(ticker: str) -> pd.DataFrame | None:
         try:
             with open(cache_path, "wb") as f:
                 pickle.dump(res, f)
-        except Exception:
+        except Exception as e:
+            st.warning(f"无法写入缓存 {cache_path}: {e}")
             pass
 
         return res
-    except Exception:
+    except Exception as e:
+        st.warning(f"无法获取数据 {ticker}: {e}")
         return None
 
 
