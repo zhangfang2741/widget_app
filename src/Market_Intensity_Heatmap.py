@@ -69,7 +69,14 @@ st.title("🌲 美国行业资金流热力图")
 def fetch_ticker_data(ticker: str) -> pd.DataFrame | None:
     cache_path = CACHE_DIR / f"{ticker}.pkl"
 
-    if cache_path.exists() and (time.time() - os.path.getmtime(cache_path)) < 86400:
+    # 当前本地时间与今日 05:00（用于生成时间戳比较）
+    now = datetime.datetime.now()
+    today_5 = now.replace(hour=5, minute=0, second=0, microsecond=0)
+    today_5_ts = today_5.timestamp()
+
+    # 缓存存在、未超过 24 小时，且缓存文件修改时间 >= 今天 05:00 时才使用缓存
+    cache_age_ok = cache_path.exists() and (time.time() - os.path.getmtime(cache_path)) < 86400
+    if cache_age_ok and os.path.getmtime(cache_path) >= today_5_ts:
         try:
             with open(cache_path, "rb") as f:
                 obj = pickle.load(f)
@@ -81,9 +88,9 @@ def fetch_ticker_data(ticker: str) -> pd.DataFrame | None:
             st.warning(f"无法读取缓存 {cache_path}: {e}")
             pass
 
+    # 其余情况向 API 请求最新数据
     start_date = (datetime.datetime.now() - datetime.timedelta(days=365)).strftime("%Y-%m-%d")
     url = f"https://api.tiingo.com/tiingo/daily/{ticker}/prices?startDate={start_date}&token={TIINGO_API_KEY}"
-
     try:
         r = requests.get(url, timeout=15)
         if r.status_code != 200:
@@ -116,7 +123,6 @@ def fetch_ticker_data(ticker: str) -> pd.DataFrame | None:
     except Exception as e:
         st.warning(f"无法获取数据 {ticker}: {e}")
         return None
-
 
 # --- 3. 构建可折叠汇总数据表 ---
 with st.spinner("数据处理中..."):
