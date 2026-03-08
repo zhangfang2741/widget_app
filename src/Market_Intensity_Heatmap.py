@@ -19,7 +19,6 @@ CACHE_DIR.mkdir(exist_ok=True)
 CHINESE_NAMES = {
     "XLK": "科技行业精选指数ETF-SPDR",
     "SOXX": "iShares半导体指数ETF",
-    "ROTZ": "Rayliant量子生成式人工智能与科技ETF",
     "AIQ": "Global X人工智能与科技ETF",
     "SKYY": "First Trust云计算指数ETF",
     "QTUM": "Defiance量子计算与机器学习ETF",
@@ -96,7 +95,7 @@ CHINESE_NAMES = {
 }
 
 ETF_LIBRARY = {
-    "01 信息技术": ["XLK", "SOXX", "ROTZ", "AIQ", "SKYY", "QTUM", "BUG", "IGV"],
+    "01 信息技术": ["XLK", "SOXX", "AIQ", "SKYY", "QTUM", "BUG", "IGV"],
     "02 医疗保健": ["XLV", "XHE", "IHF", "XBI", "PJP"],
     "03 金融": ["XLF", "KBE", "IYG", "KIE", "BLOK", "KCE", "REM"],
     "04 可选消费": ["XLY", "CARZ", "XRT", "XHB", "PEJ"],
@@ -107,7 +106,7 @@ ETF_LIBRARY = {
     "09 通信服务": ["XLC", "IYZ", "PNQI"],
     "10 房地产": ["XLRE", "INDS", "REZ", "SRVR"],
     "11 公用事业": ["XLU", "ICLN", "PHO", "GRID"],
-    "12 全球宏观/另类": ["QQQ","SPY","TLT", "EEM", "VEA", "FXI", "ARKK", "BITO", "MSOS", "IPO", "UFO","GBTC", "ETHE"]
+    "12 全球宏观/另类": ["TLT", "EEM", "VEA", "FXI", "ARKK", "BITO", "MSOS", "IPO", "UFO","GBTC", "ETHE"]
 }
 
 TICKER_TO_SECTOR = {t: s for s, ts in ETF_LIBRARY.items() for t in ts}
